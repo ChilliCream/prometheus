@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters.Conventions
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context)
-        {
+        { 
             await next(context).ConfigureAwait(false);
 
             string argumentName = filterConvention!.GetArgumentName();
@@ -62,6 +62,7 @@ namespace HotChocolate.Types.Filters.Conventions
             {
                 var visitorContext = new QueryableFilterVisitorContext(
                     iot, fit.EntityType, this, converter, source is EnumerableQuery);
+                    
                 QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
                 if (visitorContext.TryCreateLambda<T>(out Expression<Func<T, bool>>? where))

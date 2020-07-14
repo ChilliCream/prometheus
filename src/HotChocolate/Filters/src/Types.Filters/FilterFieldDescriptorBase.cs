@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Extensions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -49,6 +50,13 @@ namespace HotChocolate.Types.Filters
                 FilterOperationKind.In,
                 FilterOperationKind.NotIn
             };
+
+        public TDesc Allow<TDesc>(
+            FilterOperationKind kind,
+            Func<FilterFieldDefintion, TDesc> factory) where TDesc : FilterOperationDescriptorBase
+        {
+            return Filters.GetOrAddOperation(kind, () => factory(Definition));
+        }
 
         protected void Name(NameString value)
         {
