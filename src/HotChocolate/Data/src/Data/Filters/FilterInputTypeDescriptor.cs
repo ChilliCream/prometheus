@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Filters
             Definition.Name = Convention.GetTypeName(context, entityType);
             Definition.Description = Convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-            Definition.Scope = scope;
+            Definition.Scope = scope ?? ConventionBase.DefaultScope;
         }
 
         protected FilterInputTypeDescriptor(
@@ -37,7 +37,17 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.RuntimeType = typeof(object);
             Definition.EntityType = typeof(object);
-            Definition.Scope = scope;
+            Definition.Scope = scope ?? ConventionBase.DefaultScope;
+        }
+
+        protected internal FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            FilterInputTypeDefinition definition,
+            string? scope)
+            : base(context)
+        {
+            Convention = context.GetFilterConvention(scope);
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         protected BindableList<FilterFieldDescriptor> Fields { get; } =
@@ -222,5 +232,17 @@ namespace HotChocolate.Data.Filters
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static FilterInputTypeDescriptor From(
+            IDescriptorContext context,
+            FilterInputTypeDefinition definition,
+            string? scope) =>
+            new FilterInputTypeDescriptor(context, definition, scope);
+
+        public static FilterInputTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            FilterInputTypeDefinition definition,
+            string? scope) =>
+            new FilterInputTypeDescriptor<T>(context, definition, scope);
     }
 }

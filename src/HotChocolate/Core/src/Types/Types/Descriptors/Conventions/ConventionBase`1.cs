@@ -1,6 +1,7 @@
-namespace HotChocolate.Data.Filters
+#nullable enable
+namespace HotChocolate.Types.Descriptors
 {
-    public abstract class ConventionBase<TDefinition>
+    public abstract class ConventionBase<TDefinition> : ConventionBase
         where TDefinition : class
     {
         private TDefinition? _definition;
@@ -20,12 +21,13 @@ namespace HotChocolate.Data.Filters
             Scope = context.Scope;
             _definition = CreateDefinition(context);
             OnComplete(context, Definition);
+            MarkInitialized();
         }
-
-        protected abstract TDefinition? CreateDefinition(IConventionContext context);
 
         protected virtual void OnComplete(IConventionContext context, TDefinition? definition)
         {
         }
+
+        protected abstract TDefinition? CreateDefinition(IConventionContext context);
     }
 }

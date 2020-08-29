@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Types.Descriptors
 {
     public interface IConventionContext
     {

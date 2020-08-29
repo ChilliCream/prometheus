@@ -6,11 +6,12 @@ using HotChocolate.Types.Descriptors;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Utilities;
+using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConvention :
-        ConventionBase<FilterConventionDefinition>
+    public class FilterConvention
+        : ConventionBase<FilterConventionDefinition>
         , IFilterConvention
     {
         private readonly Action<IFilterConventionDescriptor> _configure;
@@ -27,8 +28,12 @@ namespace HotChocolate.Data.Filters
         }
 
         public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
+            = null!;
 
-        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
+        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; } = null!;
+
+        public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
+        { get; private set; } = null!;
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -47,10 +52,14 @@ namespace HotChocolate.Data.Filters
             IConventionContext context,
             FilterConventionDefinition? definition)
         {
-            Operations = definition
-                .Operations
-                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-            Bindings = definition.Bindings;
+            if (definition is { })
+            {
+                Operations = definition
+                    .Operations
+                    .ToDictionary(x => x.Operation, x => new OperationConvention(x));
+                Bindings = definition.Bindings;
+                Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+            }
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
@@ -166,6 +175,28 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(x => x.UseDefault());
             convention.Initialize(new ConventionContext(null, null));
             return convention;
+        }
+
+        public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
+            ITypeReference reference,
+            NameString temporaryName)
+        {
+            // TODO: if this it gonna be the final version we can drop the dicitionaries completely
+            foreach (KeyValuePair<ITypeReference, Action<IFilterInputTypeDescriptor>[]> element in
+                Extensions)
+            {
+                if (element.Key.Equals(reference))
+                {
+                    return element.Value;
+                }
+                else if (element.Key is SyntaxTypeReference key &&
+                  key.Type is NamedTypeNode namedKey &&
+                  temporaryName.Value == namedKey.Name.Value)
+                {
+                    return element.Value;
+                }
+            }
+            return Array.Empty<Action<IFilterInputTypeDescriptor>>();
         }
     }
 }
