@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
@@ -11,6 +12,14 @@ namespace HotChocolate.Data.Filters
 
         public Dictionary<Type, Type> Bindings { get; set; } = new Dictionary<Type, Type>();
 
+        public Dictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>> Extensions
+        { get; private set; } =
+        new Dictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>>();
+
         public string? Scope { get; set; }
+
+        public string? ArgumentName { get; set; }
+
+        public FilterProviderBase? Provider { get; set; }
     }
 }

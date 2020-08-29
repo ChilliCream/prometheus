@@ -22,11 +22,12 @@ namespace HotChocolate.Data.Filters
             InputObjectType filterType)
         {
             FilterOperationFieldDefinition? definition = FilterOperationFieldDescriptor
-                .New(context, scope, Operations.Or)
+                .New(context, scope, DefaultOperations.Or)
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(
-                new ListType(new NonNullType(filterType)));
+                new ListType(new NonNullType(filterType)),
+                scope: scope);
 
             return definition;
         }

@@ -1,14 +1,15 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Data.Filters
 {
-    public class EnumOperationInput<T> : FilterInputType
-        where T : struct
+    public class EnumOperationInput<T> : FilterInputType, IEnumOperationInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(Operations.Equals).Type(typeof(T));
-            descriptor.Operation(Operations.NotEquals).Type(typeof(T));
-            descriptor.Operation(Operations.In).Type(typeof(T));
-            descriptor.Operation(Operations.NotIn).Type(typeof(T));
+            descriptor.Operation(DefaultOperations.Equals).Type(typeof(T)).IsNullable();
+            descriptor.Operation(DefaultOperations.NotEquals).Type(typeof(T)).IsNullable();
+            descriptor.Operation(DefaultOperations.In).Type(typeof(IEnumerable<T>)).IsNullable();
+            descriptor.Operation(DefaultOperations.NotIn).Type(typeof(IEnumerable<T>)).IsNullable();
             descriptor.UseAnd(false).UseOr(false);
         }
     }

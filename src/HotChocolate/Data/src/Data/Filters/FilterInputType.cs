@@ -8,8 +8,11 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterInputType
         : InputObjectType
+        , IFilterInputType
     {
         private readonly Action<IFilterInputTypeDescriptor> _configure;
+
+        public Type EntityType { get; private set; }
 
         public FilterInputType()
         {
@@ -37,6 +40,19 @@ namespace HotChocolate.Data.Filters
         protected virtual void Configure(
             IFilterInputTypeDescriptor descriptor)
         {
+        }
+
+        protected override void OnCompleteType(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnCompleteType(context, definition);
+
+            if (definition is FilterInputTypeDefinition ft &&
+                ft.EntityType is { })
+            {
+                EntityType = ft.EntityType;
+            }
         }
 
         protected override void OnCompleteFields(

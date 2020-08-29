@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Types;
 
@@ -7,6 +8,14 @@ namespace HotChocolate.Data.Filters
         : IInputField
         , IHasRuntimeType
     {
-        MemberInfo? Member { get; set; }
+        MemberInfo? Member { get; }
+
+        FilterFieldHandler? Handler { get; }
+
+        bool? IsNullable { get; }
+
+        FilterTypeInfo? TypeInfo { get; }
+
+        Type? ElementType { get; }
     }
 }

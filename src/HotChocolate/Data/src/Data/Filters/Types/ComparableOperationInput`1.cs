@@ -1,24 +1,47 @@
-using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ComparableOperationInput<T> : FilterInputType
-        where T : IComparable
+    public class ComparableOperationInput<T> : FilterInputType, IComparableOperationInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(Operations.Equals).Type(typeof(T));
-            descriptor.Operation(Operations.NotEquals).Type(typeof(T));
-            descriptor.Operation(Operations.In).Type(typeof(T));
-            descriptor.Operation(Operations.NotIn).Type(typeof(T));
-            descriptor.Operation(Operations.GreaterThan).Type(typeof(T));
-            descriptor.Operation(Operations.NotGreaterThan).Type(typeof(T));
-            descriptor.Operation(Operations.GreaterThanOrEquals).Type(typeof(T));
-            descriptor.Operation(Operations.NotGreaterThanOrEquals).Type(typeof(T));
-            descriptor.Operation(Operations.LowerThan).Type(typeof(T));
-            descriptor.Operation(Operations.NotLowerThan).Type(typeof(T));
-            descriptor.Operation(Operations.LowerThanOrEquals).Type(typeof(T));
-            descriptor.Operation(Operations.NotLowerThanOrEquals).Type(typeof(T));
+            descriptor.Operation(DefaultOperations.Equals)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotEquals)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.In)
+                .Type(typeof(IEnumerable<T>))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotIn)
+                .Type(typeof(IEnumerable<T>))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.GreaterThan)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotGreaterThan)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.GreaterThanOrEquals)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotGreaterThanOrEquals)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.LowerThan)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotLowerThan)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.LowerThanOrEquals)
+                .Type(typeof(T))
+                .IsNullable();
+            descriptor.Operation(DefaultOperations.NotLowerThanOrEquals)
+                .Type(typeof(T))
+                .IsNullable();
             descriptor.UseAnd(false).UseOr(false);
         }
     }

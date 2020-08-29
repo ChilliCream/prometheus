@@ -23,24 +23,36 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected FilterInputTypeDescriptor(IDescriptorContext context, string? scope)
+        protected FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            string? scope)
             : base(context, scope)
         {
         }
 
+        protected internal FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            FilterInputTypeDefinition definition,
+            string? scope)
+            : base(context, definition, scope)
+        {
+        }
+
         protected override void OnCompleteFields(
-            IDictionary<NameString, InputFieldDefinition> fields,
-            ISet<PropertyInfo> handledProperties)
+            IDictionary<NameString, FilterFieldDefinition> fields,
+            ISet<MemberInfo> handledProperties)
         {
             if (Definition.Fields.IsImplicitBinding())
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
+                    Definition.RuntimeType,
                     p => FilterFieldDescriptor
                         .New(Context, Definition.Scope, p)
                         .CreateDefinition(),
                     fields,
-                    handledProperties);
+                    handledProperties,
+                    include: (members, member) => member is PropertyInfo);
             }
 
             base.OnCompleteFields(fields, handledProperties);
@@ -101,7 +113,7 @@ namespace HotChocolate.Data.Filters
 
         public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
         {
-            if (property.ExtractMember() is PropertyInfo m)
+            if (property.ExtractMember() is MemberInfo m)
             {
                 FilterFieldDescriptor fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == m);
@@ -118,13 +130,13 @@ namespace HotChocolate.Data.Filters
             }
 
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                "Only method and properties are supported",
                 nameof(property));
         }
 
         public IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property)
         {
-            if (property.ExtractMember() is PropertyInfo m)
+            if (property.ExtractMember() is MemberInfo m)
             {
                 FilterFieldDescriptor fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == m);
@@ -142,7 +154,7 @@ namespace HotChocolate.Data.Filters
             }
 
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                "Only method and properties are supported",
                 nameof(property));
         }
 

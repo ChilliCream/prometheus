@@ -6,11 +6,15 @@ using HotChocolate.Types.Descriptors;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Utilities;
+using HotChocolate.Language;
+using HotChocolate.Configuration;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConvention :
-        ConventionBase<FilterConventionDefinition>
+    public class FilterConvention
+        : ConventionBase<FilterConventionDefinition>
         , IFilterConvention
     {
         private readonly Action<IFilterConventionDescriptor> _configure;
@@ -27,8 +31,16 @@ namespace HotChocolate.Data.Filters
         }
 
         public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
+            = null!;
 
-        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
+        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; } = null!;
+
+        public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
+        { get; private set; } = null!;
+
+        public string ArgumentName { get; private set; } = null!;
+
+        public FilterProviderBase Provider { get; private set; }
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -47,10 +59,25 @@ namespace HotChocolate.Data.Filters
             IConventionContext context,
             FilterConventionDefinition? definition)
         {
-            Operations = definition
-                .Operations
-                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-            Bindings = definition.Bindings;
+            if (definition is { })
+            {
+                Operations = definition
+                    .Operations
+                    .ToDictionary(x => x.Operation, x => new OperationConvention(x));
+                Bindings = definition.Bindings;
+                Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+
+                ArgumentName = definition.ArgumentName ??
+                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
+
+                Provider = definition.Provider ??
+                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
+
+                IFilterProviderInitializationContext? providerContext =
+                    FilterProviderInitializationContext.From(context, this);
+
+                Provider.Initialize(providerContext);
+            }
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
@@ -107,6 +134,11 @@ namespace HotChocolate.Data.Filters
             {
                 return true;
             }
+            if (member is MethodInfo m &&
+                TryGetTypeOfRuntimeType(m.ReturnType, out type))
+            {
+                return true;
+            }
             type = null;
             return false;
         }
@@ -115,10 +147,11 @@ namespace HotChocolate.Data.Filters
             Type runtimeType,
             [NotNullWhen(true)] out Type? type)
         {
+            Type underlyingType = runtimeType;
             if (runtimeType.IsGenericType
-                && System.Nullable.GetUnderlyingType(runtimeType) is { } nullableType)
+                && System.Nullable.GetUnderlyingType(runtimeType) is { } innerNullableType)
             {
-                runtimeType = nullableType;
+                underlyingType = innerNullableType;
             }
 
             if (Bindings.TryGetValue(runtimeType, out type))
@@ -126,13 +159,14 @@ namespace HotChocolate.Data.Filters
                 return true;
             }
 
-            if (DotNetTypeInfoFactory.IsListType(runtimeType))
+            if (DotNetTypeInfoFactory.IsListType(underlyingType))
             {
-                if (!TypeInspector.Default.TryCreate(runtimeType, out Utilities.TypeInfo typeInfo))
+                if (!TypeInspector.Default.TryCreate(underlyingType,
+                                                     out Utilities.TypeInfo typeInfo))
                 {
                     throw new ArgumentException(
-                        string.Format("The type {0} is unknown", runtimeType.Name),
-                        nameof(runtimeType));
+                        string.Format("The type {0} is unknown", underlyingType.Name),
+                        nameof(underlyingType));
                 }
 
                 if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
@@ -142,13 +176,13 @@ namespace HotChocolate.Data.Filters
                 }
             }
 
-            if (runtimeType.IsEnum)
+            if (underlyingType.IsEnum)
             {
                 type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
                 return true;
             }
 
-            if (runtimeType.IsClass)
+            if (underlyingType.IsClass)
             {
                 type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
                 return true;
@@ -158,14 +192,40 @@ namespace HotChocolate.Data.Filters
             return false;
         }
 
-        internal static readonly IFilterConvention Default = TemporaryInitializer();
+        internal static readonly IFilterConvention Default = null!;
 
-        //TODO: Replace with named conventions!
-        internal static IFilterConvention TemporaryInitializer()
+        public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
+            ITypeReference reference,
+            NameString temporaryName)
         {
-            var convention = new FilterConvention(x => x.UseDefault());
-            convention.Initialize(new ConventionContext(null, null));
-            return convention;
+            // TODO: if this it gonna be the final version we can drop the dicitionaries completely
+            foreach (KeyValuePair<ITypeReference, Action<IFilterInputTypeDescriptor>[]> element in
+                Extensions)
+            {
+                if (element.Key.Equals(reference))
+                {
+                    return element.Value;
+                }
+                else if (element.Key is SyntaxTypeReference key &&
+                  key.Type is NamedTypeNode namedKey &&
+                  temporaryName.Value == namedKey.Name.Value)
+                {
+                    return element.Value;
+                }
+            }
+            return Array.Empty<Action<IFilterInputTypeDescriptor>>();
         }
+
+        public bool TryGetHandler(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition,
+            [NotNullWhen(true)] out FilterFieldHandler? handler) =>
+            Provider.TryGetHandler(context, typeDefinition, fieldDefinition, out handler);
+
+        public Task ExecuteAsync<TEntityType>(FieldDelegate next, IMiddlewareContext context) =>
+            Provider.ExecuteAsync<TEntityType>(next, context);
+
+        public NameString GetArgumentName() => ArgumentName;
     }
 }
