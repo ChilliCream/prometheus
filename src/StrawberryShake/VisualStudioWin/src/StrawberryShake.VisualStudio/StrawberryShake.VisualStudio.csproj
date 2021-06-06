@@ -47,6 +47,24 @@
   <ItemGroup>
     <Compile Include="AddGraphQLClient.cs" />
     <Compile Include="AsyncPackageExtensions.cs" />
+    <Compile Include="GraphQLLanguageClient.BuildConfig.cs" />
+    <Compile Include="GraphQLContentDefinition.cs" />
+    <Compile Include="Messages\ConfigurationItem.cs" />
+    <Compile Include="Messages\WorkspaceConfigurationRequest.cs" />
+    <Compile Include="Utilities\ConnectionFactory.cs" />
+    <Compile Include="Utilities\TeeStream.cs" />
+    <Resource Include="Resources\graphql-file-16.png" />
+    <Content Include="Resources\language-server-win.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Syntaxes\GraphQL.tmLanguage">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="StrawberryShakePackage.imagemanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Compile Include="GraphQLLanguageClient.MessageHandler.cs" />
+    <Compile Include="GraphQLLanguageClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -57,7 +75,6 @@
     <Compile Include="VisualStudioProject.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Grammar\GraphQL.tmlanguage" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -74,12 +91,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers">
-      <Version>2.9.8</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
+    <PackageReference Include="HotChocolate.Utilities.Introspection">
+      <Version>11.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
+      <Version>16.6.255</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
+      <Version>16.6.255</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client">
+      <Version>16.6.45</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.202" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>16.6.13</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.5.1027">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -88,7 +115,7 @@
       <Version>5.9.0</Version>
     </PackageReference>
     <PackageReference Include="System.Memory">
-      <Version>4.5.3</Version>
+      <Version>4.5.4</Version>
     </PackageReference>
     <PackageReference Include="WindowsBase">
       <Version>4.6.1055</Version>
@@ -100,15 +127,27 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\StrawberryShake.VisualStudio.ItemTemplates\StrawberryShake.VisualStudio.ItemTemplates.csproj">
+      <Project>{6ac9346b-e830-48a8-8ac0-e051b67538f3}</Project>
+      <Name>StrawberryShake.VisualStudio.ItemTemplates</Name>
+      <VSIXSubPath>ItemTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\StrawberryShake.VisualStudio.GUI\StrawberryShake.VisualStudio.GUI.csproj">
       <Project>{f21315e9-fee1-4b2e-b4e2-614dc4b376f5}</Project>
       <Name>StrawberryShake.VisualStudio.GUI</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="GraphQL.pkgdef" />
+    <Content Include="languages.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Command1.png" />
-    <Content Include="Resources\graphql.png" />
+    <Content Include="Resources\graphql.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
