@@ -1,4 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsSonarBuild Condition="'$(IsSonarBuild)' == ''">false</IsSonarBuild>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.props" Condition="'$(IsSonarBuild)' == 'false'" />
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -14,20 +19,12 @@
     <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
   </PropertyGroup>
 
-  <!--This item group needs to be in the consuming project.-->
-  <ItemGroup>
-    <AdditionalFiles Include="**\*.graphql" />
-    <AdditionalFiles Include="**\.graphqlrc.json" />
-    <Watch Include="**\*.graphql" />
-    <Watch Include="**\.graphqlrc.json" />
-  </ItemGroup>
-
   <ItemGroup>
     <CompilerVisibleProperty Include="HotChocolate_BinDir" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Condition="'$(IsSonarBuild)' == 'false'" />
     <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
   </ItemGroup>
 
@@ -45,4 +42,5 @@
     </PackageReference>
   </ItemGroup>
 
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.targets" />
 </Project>
