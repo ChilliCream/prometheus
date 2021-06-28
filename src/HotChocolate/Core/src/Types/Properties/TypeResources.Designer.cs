@@ -1185,6 +1185,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_ObjectField_HasNoResolver {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ObjectField_HasNoResolver", resourceCulture);
+            }
+        }
+        
         internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
             get {
                 return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
@@ -1233,6 +1239,18 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string CostDirective_ComplexityCannotBeBelowOne {
+            get {
+                return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
+            }
+        }
+        
+        internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
+            get {
+                return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
+                }
+        }
+
         internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
             get {
                 return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);

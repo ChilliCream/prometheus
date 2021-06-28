@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -12,6 +13,20 @@ namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal static class ArgumentHelper
     {
+        internal static bool IsPure(ParameterInfo parameterInfo, Type sourceType)
+        {
+            switch (LookupKind(parameterInfo, sourceType))
+            {
+                case ArgumentKind.Argument:
+                case ArgumentKind.Source:
+                case ArgumentKind.CustomContext:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
         {
