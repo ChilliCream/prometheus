@@ -16,11 +16,87 @@ TODO
 
 TODO
 
-[Learn more about Connections](/docs/hotchocolate/fetching-data/pagination/#connections)
+[Learn more about Connections](/docs/hotchocolate/fetching-data/pagination#connections)
 
-# Mutation Payloads
+# Query field in Mutation payloads
 
-TODO
+It's a common best practice to return a payload type from mutations containing the affected entity as a field.
+
+```sdl
+type Mutation {
+  likePost(id: ID!): LikePostPayload
+}
+
+type LikePostPayload {
+  post: Post
+}
+```
+
+This allows us to immediately use the affected entity in the client application responsible for the mutation.
+
+Sometimes a mutation might also affect other parts of our application as well. Maybe the `likePost` mutation needs to update an Activity Feed.
+
+For this scenario we can expose a `query` field on our payload type to allow the client application to fetch everything it needs to update its state in one round trip.
+
+```sdl
+type LikePostPayload {
+  post: Post
+  query: Query
+}
+```
+
+A resulting mutation request could look like the following.
+
+```graphql
+mutation {
+  likePost(id: 1) {
+    post {
+      id
+      content
+      likes
+    }
+    query {
+      ...ActivityFeed_Fragment
+    }
+  }
+}
+```
+
+Hot Chocolate allows us to automatically add this `query` field to all of our mutation payload types.
+
+We can enable it like the following:
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .EnableRelaySupport(new RelayOptions
+            {
+                AddQueryFieldToMutationPayloads = true
+            });
+    }
+}
+```
+
+By default this will add a new field called `query` to each type, whose name ends in `Payload`.
+
+Of course these defaults can be tweaked:
+
+```csharp
+services
+    .AddGraphQLServer()
+    .EnableRelaySupport(new RelayOptions
+    {
+        AddQueryFieldToMutationPayloads = true,
+        QueryFieldName = "rootQuery",
+        MutationPayloadPredicate = (type) => type.Name.Value.EndsWith("Result")
+    });
+```
+
+This would add a field of type `Query` with the name of `rootQuery` to each type, whose name ends in `Result`.
 
 <!-- [Relay](https://facebook.github.io/relay) is a _JavaScript_ framework for building data-driven React applications with GraphQL which is developed and used by _Facebook_.
 
@@ -85,36 +161,4 @@ public class MyObjectType
 On the descriptor we mark the object as a node with `AsNode` after that we specify the property that represents our internal identifier, last but not least we specify the node resolver that will fetch the node from the database when it is requested through the `node` field on the query type.
 
 There are more variants possible and you can even write custom resolvers and do not have to bind to an explicit property.
-
-# Connections
-
-The pagination specification is called [Relay Cursor Connections Specification](https://facebook.github.io/relay/graphql/connections.htm) and contains functionality to make manipulating one-to-many relationships easy, using a standardized way of expressing these one-to-many relationships. This standard connection model offers ways of slicing and paginating through the connection.
-
-The relay style pagination is really powerful and with Hot Chocolate it is quite simple to implement.
-
-If your database provider can provide it\`s data through `IQueryable` then implementing relay pagination is one line of code:
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.Strings).UsePaging<StringType>();
-    }
-}
-```
-
-**We have a lot more documentation on pagination [here](/docs/hotchocolate/v10/data-fetching/pagination).**
-
-# Mutations
-
-The last specification is called [Relay Input Object Mutations Specification](https://facebook.github.io/relay/graphql/mutations.htm) and it describes how mutations should be specified. This is more a design guideline then something we could help you with APIs with.
-
-Nevertheless, with version 9.1 we will try aide this with some convenience:
-[Automatic Relay InputType](https://github.com/ChilliCream/hotchocolate/issues/773).
-
-# Additional Information
-
-The relay server specifications are also summarized and explained [here](https://facebook.github.io/relay/docs/en/graphql-server-specification). Also, if you have further questions head over to our slack channel.
  -->
