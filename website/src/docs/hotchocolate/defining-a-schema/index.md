@@ -22,7 +22,7 @@ Each GraphQL schema is made up of two basic building blocks:
 
 - Scalars are the primitives of our GraphQL schema: `String`, `Int`, etc.<br />We can also define custom scalars to more precisely describe our business domain.<br />[Learn more about scalars](/docs/hotchocolate/defining-a-schema/scalars)
 
-There are also other types to express more complicated:
+There are also more advanced types:
 
 - Enums are a special kind of scalar, restricted to a particular set of allowed values.<br />[Learn more about enums](/docs/hotchocolate/defining-a-schema/enums)
 - Interfaces represent a shared contract that other types can implement.<br />[Learn more about interfaces](/docs/hotchocolate/defining-a-schema/interfaces)

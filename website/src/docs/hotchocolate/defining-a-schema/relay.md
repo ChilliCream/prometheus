@@ -2,6 +2,8 @@
 title: "Relay"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 TODO
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
@@ -11,6 +13,134 @@ TODO
 TODO
 
 [Learn more about Global Object Identification](https://graphql.org/learn/global-object-identification)
+
+<!-- todo: better name -->
+
+## Unique Ids
+
+TODO
+
+<!-- todo: explain first parameter -->
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class User
+{
+    [ID]
+    public string Id { get; set; }
+
+    public string Name { get; set; }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class User
+{
+    public string Id { get; set; }
+
+    public string Name { get; set; }
+}
+
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(f => f.Id).ID();
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+### Id Serializer
+
+If we need to we can also work directly with the `IIdSerializer` used to generate unique Ids.
+
+```csharp
+public class Query
+{
+    public string Example([Service] IIdSerializer serializer)
+    {
+        string serializedId = serializer.Serialize(null, "User", "123");
+
+        IdValue deserializedIdValue = serializer.Deserialize(serializedId);
+        object deserializedId = deserializedIdValue.Value;
+
+        // Omitted code for brevity
+    }
+}
+```
+
+The `Serialize()` method takes the schema name as a first argument, followed by the type name and lastly the actual Id.
+
+The `IIdSerializer` is a regular service and can therefore be accessed like any other service.
+
+[Learn more about injecting services](/docs/hotchocolate/fetching-data/resolvers#injecting-services)
+
+<!-- todo: better name -->
+
+## Nodes
+
+TODO
+
+> ⚠️ Note: Using `EnableRelaySupport` in two stitched services does currently not work.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+TODO
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class User
+{
+    public string Id { get; set; }
+
+    public string Name { get; set; }
+}
+
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor
+            .ImplementsNode()
+            .IdField(f => f.Id)
+            .ResolveNode(async (context, id) =>
+            {
+                User user =
+                    await context.Service<UserService>().GetByIdAsync(id);
+
+                return user;
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.
+
+[Learn more about DataLoaders](/docs/hotchocolate/fetching-data/dataloader)
 
 # Connections
 
@@ -81,7 +211,7 @@ public class Startup
 }
 ```
 
-By default this will add a new field called `query` to each type, whose name ends in `Payload`.
+By default, this will add a field of type `Query` called `query` to each top-level mutation field type, whose name ends in `Payload`.
 
 Of course these defaults can be tweaked:
 
@@ -96,69 +226,4 @@ services
     });
 ```
 
-This would add a field of type `Query` with the name of `rootQuery` to each type, whose name ends in `Result`.
-
-<!-- [Relay](https://facebook.github.io/relay) is a _JavaScript_ framework for building data-driven React applications with GraphQL which is developed and used by _Facebook_.
-
-Relay makes three assumptions about the backend which you have to abide by in order that your GraphQL backend plays well with this framework.
-
-We recommend that you abide to the relay server specifications even if you do not plan to use relay since even _Apollo_ supports these specifications and they are really good guidelines that lead to a better schema design.
-
-# Object Identification
-
-The first specification is called [Relay Global Object Identification Specification](https://facebook.github.io/relay/graphql/objectidentification.htm) and defines that object identifiers are specified in a standardized way. Moreover, it defines that all identifier is schema unique and that we can refetch any object just by providing that identifier.
-
-In order to support the schema has to provide an interface `Node` that looks like following:
-
-```sdl
-interface Node {
-  id: ID!
-}
-```
-
-Each object that exposes an identifier has to implement `Node` and provide the `id` field.
-
-Moreover, the `Query` type has to expose a field `node` that can return a node for an id.
-
-```sdl
-type Query {
-  ...
-  node(id: ID!) : Node
-  ...
-}
-```
-
-This allows now the client APIs to automatically refetch objects from the server if the client framework wants to update its caches or if it has part of the object in its store and wants to fetch additional fields of an object.
-
-Hot Chocolate makes implementing this very easy. First, we have to declare on our schema that we want to be relay compliant:
-
-```csharp
-ISchema schema = SchemaBuilder.New()
-    .EnableRelaySupport()
-    ...
-    .Create();
-```
-
-This basically sets up a middleware to encode out identifiers to be schema unique, so you do not have to provide schema unique identifiers. Moreover, it will add a `Node` interface type and configure the `node` field on our query type.
-
-Lastly, we have to declare on our object types that they are nodes and how they can be resolved.
-
-```csharp
-public class MyObjectType
-    : ObjectType<MyObject>
-{
-    protected override void Configure(IObjectTypeDescriptor<MyObject> descriptor)
-    {
-        descriptor.AsNode()
-            .IdField(t => t.Id)
-            .NodeResolver((ctx, id) =>
-                ctx.Service<IMyRepository>().GetMyObjectAsync(id));
-        ...
-    }
-}
-```
-
-On the descriptor we mark the object as a node with `AsNode` after that we specify the property that represents our internal identifier, last but not least we specify the node resolver that will fetch the node from the database when it is requested through the `node` field on the query type.
-
-There are more variants possible and you can even write custom resolvers and do not have to bind to an explicit property.
- -->
+This would add a field of type `Query` with the name of `rootQuery` to each top-level mutation field type, whose name ends in `Result`.
