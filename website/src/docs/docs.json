@@ -87,6 +87,10 @@
               {
                 "path": "versioning",
                 "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
               }
             ]
           },
@@ -167,12 +171,12 @@
                 "title": "Entity Framework"
               },
               {
-                "path": "spatial-data",
-                "title": "Spatial Data"
-              },
-              {
                 "path": "mongodb",
                 "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
               }
             ]
           },
