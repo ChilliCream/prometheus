@@ -113,6 +113,11 @@ const codeLanguages: Record<
     color: "#fff",
     background: "#999",
   },
+  js: {
+    content: "JavaScript",
+    color: "#fff",
+    background: "#efd81d",
+  },
 };
 
 const IndicatorContent = styled.div`
